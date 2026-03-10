@@ -14,6 +14,7 @@ import com.orgzly.android.di.module.DatabaseModule;
 import com.orgzly.android.ui.CommonActivity;
 import com.orgzly.android.ui.CommonActivityLifecycleCallbacks;
 import com.orgzly.android.ui.settings.SettingsFragment;
+import com.orgzly.android.wear.PhoneWearService;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +27,7 @@ public class App extends Application {
     public static AppExecutors EXECUTORS = new AppExecutors();
 
     public static AppComponent appComponent;
+
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -58,6 +60,13 @@ public class App extends Application {
         App.context = getApplicationContext();
 
         NotificationChannels.createAll(this);
+
+        // Register programmatic Wear OS message listener for cross-package communication
+        try {
+            PhoneWearService.Companion.registerProgrammaticListener(this, appComponent.dataRepository());
+        } catch (Exception e) {
+            // Wear OS not available, ignore
+        }
     }
 
     public static void setDefaultPreferences(Context context, boolean readAgain) {

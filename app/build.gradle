@@ -214,6 +214,9 @@ dependencies {
 
     implementation "io.github.rburgst:okhttp-digest:$versions.okhttp_digest"
 
+    // Wearable Data Layer (for communicating with Wear OS companion app)
+    implementation "com.google.android.gms:play-services-wearable:$versions.play_services_wearable"
+
     implementation("org.eclipse.jgit:org.eclipse.jgit:$versions.jgit") {
         because 'Git repo support'
     }

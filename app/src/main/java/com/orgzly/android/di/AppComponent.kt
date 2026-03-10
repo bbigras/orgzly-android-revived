@@ -1,5 +1,6 @@
 package com.orgzly.android.di
 
+import com.orgzly.android.data.DataRepository
 import com.orgzly.android.NewNoteBroadcastReceiver
 import com.orgzly.android.NotificationBroadcastReceiver
 import com.orgzly.android.SharingShortcutsManager
@@ -40,6 +41,7 @@ import com.orgzly.android.ui.share.ShareActivity
 import com.orgzly.android.ui.sync.SyncFragment
 import com.orgzly.android.usecase.UseCaseRunner
 import com.orgzly.android.usecase.UseCaseWorker
+import com.orgzly.android.wear.PhoneWearService
 import com.orgzly.android.widgets.ListWidgetProvider
 import com.orgzly.android.widgets.ListWidgetSelectionActivity
 import com.orgzly.android.widgets.ListWidgetService
@@ -55,6 +57,8 @@ import javax.inject.Singleton
     DataModule::class
 ])
 interface AppComponent {
+    fun dataRepository(): DataRepository
+
     fun inject(arg: MainActivity)
     fun inject(arg: ReposActivity)
     fun inject(arg: DropboxRepoActivity)
@@ -100,4 +104,5 @@ interface AppComponent {
     fun inject(arg: NotificationBroadcastReceiver)
     fun inject(arg: SharingShortcutsManager)
     fun inject(arg: ExternalAccessActionHandler)
+    fun inject(arg: PhoneWearService)
 }

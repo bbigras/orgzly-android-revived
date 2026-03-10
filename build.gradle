@@ -82,6 +82,12 @@ buildscript {
 
     versions.webdav_embedded_server = '0.2.1'
 
+    versions.play_services_wearable = '18.2.0'
+    versions.wear_watchface_complications = '1.2.1'
+    versions.wear_compose = '1.4.0'
+    versions.compose_wear_navigation = '1.4.0'
+    versions.horologist = '0.6.20'
+
     ext.versions = versions
 
     repositories {

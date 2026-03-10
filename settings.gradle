@@ -34,4 +34,5 @@ if (gradle.ext.appProperties.org_java_directory?.trim()) {
 }
 
 include ':app'
+include ':wear'
 include ':shared-test'

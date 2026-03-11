@@ -85,6 +85,6 @@ class PhoneWearService : WearableListenerService() {
         const val KEY_TOTAL = "total"
         const val KEY_QUERY = "query"
 
-        const val DEFAULT_SEARCH_QUERY = "ad.3"
+        const val DEFAULT_SEARCH_QUERY = "s.ge.today s.le.today"
     }
 }

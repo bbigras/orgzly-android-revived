@@ -4,7 +4,7 @@
     <string name="config_title">Complication Settings</string>
     <string name="complication_label">Orgzly Tasks</string>
     <string name="search_query_label">Search query</string>
-    <string name="search_query_hint">e.g. ad.3</string>
+    <string name="search_query_hint">e.g. s.ge.today s.le.today</string>
     <string name="save">Save</string>
     <string name="no_data">--</string>
     <string name="no_phone">No phone</string>

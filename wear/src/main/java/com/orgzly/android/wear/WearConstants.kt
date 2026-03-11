@@ -10,7 +10,7 @@ object WearConstants {
     const val PREF_CACHED_TOTAL = "cached_total"
     const val PREF_LAST_UPDATE = "last_update"
 
-    const val DEFAULT_SEARCH_QUERY = "ad.3"
+    const val DEFAULT_SEARCH_QUERY = "s.ge.today s.le.today"
 
     const val KEY_DONE = "done"
     const val KEY_TOTAL = "total"

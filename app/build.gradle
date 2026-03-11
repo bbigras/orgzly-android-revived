@@ -78,6 +78,8 @@ android {
             // Remove Git feature because of Play restrictions on external storage permissions
             buildConfigField "boolean", "IS_GIT_REMOVED", "true"
 
+            buildConfigField "boolean", "IS_WEAR_OS_ENABLED", "true"
+
             buildConfigField "String", "VERSION_NAME_SUFFIX", '""'
 
             dimension "store"
@@ -91,6 +93,8 @@ android {
             buildConfigField "boolean", "IS_DROPBOX_ENABLED", "false"
 
             buildConfigField "boolean", "IS_GIT_REMOVED", "false"
+
+            buildConfigField "boolean", "IS_WEAR_OS_ENABLED", "false"
 
             buildConfigField "String", "VERSION_NAME_SUFFIX", '" (fdroid)"'
 
@@ -215,7 +219,7 @@ dependencies {
     implementation "io.github.rburgst:okhttp-digest:$versions.okhttp_digest"
 
     // Wearable Data Layer (for communicating with Wear OS companion app)
-    implementation "com.google.android.gms:play-services-wearable:$versions.play_services_wearable"
+    premiumImplementation "com.google.android.gms:play-services-wearable:$versions.play_services_wearable"
 
     implementation("org.eclipse.jgit:org.eclipse.jgit:$versions.jgit") {
         because 'Git repo support'

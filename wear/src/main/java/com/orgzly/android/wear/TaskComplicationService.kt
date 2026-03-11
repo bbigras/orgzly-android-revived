@@ -35,13 +35,9 @@ class TaskComplicationService : SuspendingComplicationDataSourceService() {
     }
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
-        Log.d(TAG, "onComplicationRequest: type=${request.complicationType}")
-
         val prefs = getSharedPreferences(WearConstants.PREFS_NAME, Context.MODE_PRIVATE)
         val query = prefs.getString(WearConstants.PREF_SEARCH_QUERY, WearConstants.DEFAULT_SEARCH_QUERY)
             ?: WearConstants.DEFAULT_SEARCH_QUERY
-
-        Log.d(TAG, "Using query: $query")
 
         // Try to get fresh data from phone
         val result = withTimeoutOrNull(8000L) {
@@ -54,7 +50,6 @@ class TaskComplicationService : SuspendingComplicationDataSourceService() {
         if (result != null) {
             done = result.first
             total = result.second
-            Log.d(TAG, "Got fresh data from phone: $done/$total")
             // Cache the result
             prefs.edit()
                 .putInt(WearConstants.PREF_CACHED_DONE, done)
@@ -62,19 +57,15 @@ class TaskComplicationService : SuspendingComplicationDataSourceService() {
                 .putLong(WearConstants.PREF_LAST_UPDATE, System.currentTimeMillis())
                 .apply()
         } else {
-            Log.d(TAG, "No response from phone, using cache")
             // Use cached data
             done = prefs.getInt(WearConstants.PREF_CACHED_DONE, -1)
             total = prefs.getInt(WearConstants.PREF_CACHED_TOTAL, -1)
-            Log.d(TAG, "Cached data: $done/$total")
         }
 
         if (done < 0 || total < 0) {
-            Log.d(TAG, "No data available, showing placeholder")
             return buildNoData(request.complicationType)
         }
 
-        Log.d(TAG, "Returning complication: $done/$total")
         return when (request.complicationType) {
             ComplicationType.SHORT_TEXT -> buildShortText(done, total)
             ComplicationType.RANGED_VALUE -> buildRangedValue(done, total)
@@ -84,7 +75,6 @@ class TaskComplicationService : SuspendingComplicationDataSourceService() {
 
     private suspend fun requestTaskCountsFromPhone(query: String): Pair<Int, Int>? {
         return try {
-            // Use CapabilityClient to find nodes with the orgzly_task_provider capability
             val capabilityClient = Wearable.getCapabilityClient(this)
             val capabilityInfo = capabilityClient.getCapability(
                 WearConstants.CAPABILITY_TASK_PROVIDER,
@@ -92,14 +82,12 @@ class TaskComplicationService : SuspendingComplicationDataSourceService() {
             ).await()
 
             val nodes = capabilityInfo.nodes
-            Log.d(TAG, "Capable nodes: ${nodes.size} - ${nodes.map { "${it.displayName}(${it.id})" }}")
 
             if (nodes.isEmpty()) {
                 // Fallback to all connected nodes
                 val allNodes = Wearable.getNodeClient(this).connectedNodes.await()
-                Log.d(TAG, "Fallback - connected nodes: ${allNodes.size} - ${allNodes.map { "${it.displayName}(${it.id})" }}")
                 if (allNodes.isEmpty()) {
-                    Log.w(TAG, "No connected nodes found at all")
+                    Log.w(TAG, "No connected nodes found")
                     return null
                 }
                 return sendRequestToNodes(allNodes.map { it.id to it.displayName }, query)
@@ -114,7 +102,6 @@ class TaskComplicationService : SuspendingComplicationDataSourceService() {
 
     private suspend fun sendRequestToNodes(nodes: List<Pair<String, String>>, query: String): Pair<Int, Int>? {
         return try {
-
             val messageClient = Wearable.getMessageClient(this)
             val requestData = Gson().toJson(mapOf(WearConstants.KEY_QUERY to query)).toByteArray()
 
@@ -122,11 +109,9 @@ class TaskComplicationService : SuspendingComplicationDataSourceService() {
             val result = suspendCancellableCoroutine { cont ->
                 val listener = object : MessageClient.OnMessageReceivedListener {
                     override fun onMessageReceived(event: MessageEvent) {
-                        Log.d(TAG, "Received message on path: ${event.path}")
                         if (event.path == WearConstants.PATH_TASK_COUNTS_RESPONSE) {
                             messageClient.removeListener(this)
                             val json = String(event.data)
-                            Log.d(TAG, "Response JSON: $json")
                             val map = Gson().fromJson(json, Map::class.java)
                             val done = (map[WearConstants.KEY_DONE] as? Double)?.toInt() ?: 0
                             val total = (map[WearConstants.KEY_TOTAL] as? Double)?.toInt() ?: 0
@@ -144,16 +129,13 @@ class TaskComplicationService : SuspendingComplicationDataSourceService() {
                 }
 
                 // Send request to all nodes
-                for ((nodeId, displayName) in nodes) {
-                    Log.d(TAG, "Sending request to node: $displayName($nodeId)")
+                for ((nodeId, _) in nodes) {
                     messageClient.sendMessage(
                         nodeId,
                         WearConstants.PATH_TASK_COUNTS_REQUEST,
                         requestData
-                    ).addOnSuccessListener {
-                        Log.d(TAG, "Message sent successfully to $displayName")
-                    }.addOnFailureListener { e ->
-                        Log.e(TAG, "Failed to send message to $displayName", e)
+                    ).addOnFailureListener { e ->
+                        Log.e(TAG, "Failed to send message to node $nodeId", e)
                     }
                 }
             }

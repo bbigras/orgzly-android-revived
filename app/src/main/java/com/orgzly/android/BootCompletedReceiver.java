@@ -8,6 +8,7 @@ import com.orgzly.android.prefs.AppPreferences;
 import com.orgzly.android.sync.AutoSyncScheduler;
 import com.orgzly.android.ui.notifications.Notifications;
 import com.orgzly.android.util.LogUtils;
+import com.orgzly.android.wear.MidnightWearRefreshWorker;
 
 public class BootCompletedReceiver extends BroadcastReceiver {
     public static final String TAG = BootCompletedReceiver.class.getName();
@@ -24,6 +25,7 @@ public class BootCompletedReceiver extends BroadcastReceiver {
                 AutoSyncScheduler.Companion.cancelAll(context);
                 AutoSyncScheduler.Companion.schedule(context);
             }
+            MidnightWearRefreshWorker.schedule(context);
         }
     }
 }

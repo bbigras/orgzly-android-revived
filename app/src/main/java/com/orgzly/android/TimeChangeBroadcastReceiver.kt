@@ -8,6 +8,7 @@ import com.orgzly.android.data.DataRepository
 import com.orgzly.android.usecase.TimestampUpdate
 import com.orgzly.android.usecase.UseCaseWorker
 import com.orgzly.android.util.LogUtils
+import com.orgzly.android.wear.MidnightWearRefreshWorker
 import javax.inject.Inject
 
 class TimeChangeBroadcastReceiver : BroadcastReceiver() {
@@ -24,6 +25,7 @@ class TimeChangeBroadcastReceiver : BroadcastReceiver() {
             Intent.ACTION_TIMEZONE_CHANGED,
             Intent.ACTION_TIME_CHANGED -> {
                 UseCaseWorker.schedule(context, TimestampUpdate())
+                MidnightWearRefreshWorker.schedule(context)
             }
         }
     }

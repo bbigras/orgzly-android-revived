@@ -10,5 +10,6 @@ object WearDataPusher {
         CoroutineScope(Dispatchers.IO).launch {
             PhoneWearService.pushTaskCounts(context)
         }
+        MidnightWearRefreshWorker.schedule(context)
     }
 }

@@ -16,6 +16,7 @@ import androidx.wear.watchface.complications.datasource.ComplicationRequest
 import androidx.wear.watchface.complications.datasource.SuspendingComplicationDataSourceService
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
+import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.orgzly.wear.R
@@ -25,6 +26,19 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
 class TaskComplicationService : SuspendingComplicationDataSourceService() {
+
+    override fun onComplicationActivated(complicationInstanceId: Int, type: ComplicationType) {
+        super.onComplicationActivated(complicationInstanceId, type)
+        // Push current query to DataClient so phone has config on first use
+        val prefs = getSharedPreferences(WearConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        val query = prefs.getString(WearConstants.PREF_SEARCH_QUERY, WearConstants.DEFAULT_SEARCH_QUERY)
+            ?: WearConstants.DEFAULT_SEARCH_QUERY
+        val putRequest = PutDataMapRequest.create(WearConstants.DATA_PATH_WATCH_CONFIG).apply {
+            dataMap.putString(WearConstants.KEY_QUERY, query)
+            dataMap.putLong(WearConstants.DATA_KEY_TIMESTAMP, System.currentTimeMillis())
+        }.asPutDataRequest().setUrgent()
+        Wearable.getDataClient(this).putDataItem(putRequest)
+    }
 
     override fun getPreviewData(type: ComplicationType): ComplicationData? {
         return when (type) {
@@ -39,27 +53,38 @@ class TaskComplicationService : SuspendingComplicationDataSourceService() {
         val query = prefs.getString(WearConstants.PREF_SEARCH_QUERY, WearConstants.DEFAULT_SEARCH_QUERY)
             ?: WearConstants.DEFAULT_SEARCH_QUERY
 
-        // Try to get fresh data from phone
-        val result = withTimeoutOrNull(8000L) {
-            requestTaskCountsFromPhone(query)
-        }
-
         val done: Int
         val total: Int
 
-        if (result != null) {
-            done = result.first
-            total = result.second
-            // Cache the result
-            prefs.edit()
-                .putInt(WearConstants.PREF_CACHED_DONE, done)
-                .putInt(WearConstants.PREF_CACHED_TOTAL, total)
-                .putLong(WearConstants.PREF_LAST_UPDATE, System.currentTimeMillis())
-                .apply()
+        val lastUpdate = prefs.getLong(WearConstants.PREF_LAST_UPDATE, 0)
+        val cacheAge = System.currentTimeMillis() - lastUpdate
+        val cachedDone = prefs.getInt(WearConstants.PREF_CACHED_DONE, -1)
+        val cachedTotal = prefs.getInt(WearConstants.PREF_CACHED_TOTAL, -1)
+
+        if (cacheAge < CACHE_FRESH_MS && cachedDone >= 0 && cachedTotal >= 0) {
+            // Cache is fresh (pushed via DataClient), skip MessageClient round-trip
+            done = cachedDone
+            total = cachedTotal
         } else {
-            // Use cached data
-            done = prefs.getInt(WearConstants.PREF_CACHED_DONE, -1)
-            total = prefs.getInt(WearConstants.PREF_CACHED_TOTAL, -1)
+            // Try to get fresh data from phone via MessageClient
+            val result = withTimeoutOrNull(8000L) {
+                requestTaskCountsFromPhone(query)
+            }
+
+            if (result != null) {
+                done = result.first
+                total = result.second
+                // Cache the result
+                prefs.edit()
+                    .putInt(WearConstants.PREF_CACHED_DONE, done)
+                    .putInt(WearConstants.PREF_CACHED_TOTAL, total)
+                    .putLong(WearConstants.PREF_LAST_UPDATE, System.currentTimeMillis())
+                    .apply()
+            } else {
+                // Use cached data
+                done = cachedDone
+                total = cachedTotal
+            }
         }
 
         if (done < 0 || total < 0) {
@@ -221,6 +246,7 @@ class TaskComplicationService : SuspendingComplicationDataSourceService() {
 
     companion object {
         private const val TAG = "TaskComplication"
+        private const val CACHE_FRESH_MS = 2 * 60 * 1000L // 2 minutes
 
         fun requestUpdate(context: Context) {
             val requester = ComplicationDataSourceUpdateRequester.create(

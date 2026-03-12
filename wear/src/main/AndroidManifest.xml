@@ -32,8 +32,21 @@
 
             <meta-data
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
-                android:value="900" />
+                android:value="3600" />
 
+        </service>
+
+        <service
+            android:name="com.orgzly.android.wear.WatchDataListenerService"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/orgzly/task_counts" />
+            </intent-filter>
         </service>
 
         <activity

@@ -5,6 +5,8 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import com.google.android.gms.wearable.PutDataMapRequest
+import com.google.android.gms.wearable.Wearable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +56,13 @@ class ConfigActivity : ComponentActivity() {
                     prefs.edit()
                         .putString(WearConstants.PREF_SEARCH_QUERY, query)
                         .apply()
+
+                    // Push query to DataClient so phone can listen for config changes
+                    val putRequest = PutDataMapRequest.create(WearConstants.DATA_PATH_WATCH_CONFIG).apply {
+                        dataMap.putString(WearConstants.KEY_QUERY, query)
+                        dataMap.putLong(WearConstants.DATA_KEY_TIMESTAMP, System.currentTimeMillis())
+                    }.asPutDataRequest().setUrgent()
+                    Wearable.getDataClient(this@ConfigActivity).putDataItem(putRequest)
 
                     // Trigger complication update with new query
                     TaskComplicationService.requestUpdate(this)

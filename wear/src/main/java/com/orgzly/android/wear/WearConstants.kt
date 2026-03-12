@@ -4,6 +4,10 @@ object WearConstants {
     const val PATH_TASK_COUNTS_REQUEST = "/orgzly/task_counts_request"
     const val PATH_TASK_COUNTS_RESPONSE = "/orgzly/task_counts_response"
 
+    const val DATA_PATH_TASK_COUNTS = "/orgzly/task_counts"
+    const val DATA_PATH_WATCH_CONFIG = "/orgzly/watch_config"
+    const val DATA_KEY_TIMESTAMP = "timestamp"
+
     const val PREFS_NAME = "orgzly_wear_prefs"
     const val PREF_SEARCH_QUERY = "search_query"
     const val PREF_CACHED_DONE = "cached_done"

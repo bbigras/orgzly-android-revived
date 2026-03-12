@@ -7,6 +7,7 @@ import com.orgzly.android.reminders.RemindersScheduler
 import com.orgzly.android.sync.AutoSync
 import com.orgzly.android.SharingShortcutsManager
 import com.orgzly.android.util.LogUtils
+import com.orgzly.android.wear.WearDataPusher
 import com.orgzly.android.widgets.ListWidgetProvider
 import javax.inject.Inject
 
@@ -43,6 +44,7 @@ object UseCaseRunner {
         if (result.modifiesLocalData) {
             RemindersScheduler.notifyDataSetChanged(App.getAppContext())
             ListWidgetProvider.notifyDataSetChanged(App.getAppContext())
+            WearDataPusher.notifyDataSetChanged(App.getAppContext())
             SharingShortcutsManager().replaceDynamicShortcuts(App.getAppContext())
         }
 

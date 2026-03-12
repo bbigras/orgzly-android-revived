@@ -15,6 +15,14 @@
                     android:host="*"
                     android:pathPrefix="/orgzly/task_counts_request" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/orgzly/watch_config" />
+            </intent-filter>
         </service>
     </application>
 </manifest>
